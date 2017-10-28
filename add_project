@@ -1,0 +1,30 @@
+#!/usr/bin/python
+
+import argparse
+import subprocess
+import os
+
+
+def run(cmd):
+    proc = subprocess.Popen(cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                )
+
+    print proc.communicate()[0]
+
+
+p = argparse.ArgumentParser()
+p.add_argument("-n", "--name", required=True)
+p.add_argument("-r", "--remote", required=True)
+
+args = p.parse_args()
+
+run("mkdir -p /usr/local/elixir/http/projects/%s/data" % args.name)
+run("git clone %s /usr/local/elixir/http/projects/%s/repo" % (args.remote, args.name))
+os.environ["LXR_REPO_DIR"] = "/usr/local/elixir/http/projects/%s/repo" % (args.name)
+os.environ["LXR_DATA_DIR"] = "/usr/local/elixir/http/projects/%s/data" % (args.name)
+
+print "Creating database..."
+run("cd /usr/local/elixir; ./update.py")
+print "done"
