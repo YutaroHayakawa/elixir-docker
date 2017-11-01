@@ -28,7 +28,7 @@ RUN python3 setup.py --berkeley-db=/db-4.8.30 install
 WORKDIR /usr/local
 
 # Install elixir
-RUN git clone https://github.com/free-electrons/elixir.git
+RUN git clone https://github.com/YutaroHayakawa/elixir.git
 WORKDIR /usr/local/elixir
 
 # Add script for adding new projects

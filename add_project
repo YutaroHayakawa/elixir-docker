@@ -11,19 +11,44 @@ def run(cmd):
                 stdout=subprocess.PIPE,
                 )
 
-    print proc.communicate()[0]
+    stdout = proc.communicate()[0]
+
+    print stdout
+    return stdout
 
 
 p = argparse.ArgumentParser()
 p.add_argument("-n", "--name", required=True)
 p.add_argument("-r", "--remote", required=True)
+p.add_argument("-t", "--tags")
+p.add_argument("-l", "--create_latest_tag")
 
 args = p.parse_args()
 
-run("mkdir -p /usr/local/elixir/http/projects/%s/data" % args.name)
-run("git clone %s /usr/local/elixir/http/projects/%s/repo" % (args.remote, args.name))
-os.environ["LXR_REPO_DIR"] = "/usr/local/elixir/http/projects/%s/repo" % (args.name)
-os.environ["LXR_DATA_DIR"] = "/usr/local/elixir/http/projects/%s/data" % (args.name)
+git_dir = "/usr/local/elixir/http/projects/%s/repo" % args.name
+data_dir = "/usr/local/elixir/http/projects/%s/data" % args.name
+
+run("mkdir -p %s" % data_dir)
+run("git clone %s %s" % (args.remote, git_dir))
+
+if args.create_latest_tag:
+    run("cd %s; git tag -a %s -m \"Current latest\"" % (git_dir, dt.now().strftime('%Y%m%d')))
+
+if len(run("cd %s; git tag" % git_dir)) == 0:
+    print "It seems no tags in this project. Creating latest tag."
+    if not args.create_latest_tag:
+        run("cd %s; git tag -a %s -m \"Current latest\"" % (git_dir, dt.now().strftime('%Y%m%d')))
+else:
+    if args.tags:
+        include_tags = args.tags.split(",")
+        available_tags = run("cd %s; git tag" % git_dir)
+        available_tags = available_tags.split("\n")
+        for t in available_tags:
+            if t not in include_tags:
+                run("cd %s; git tag -d %s" % (git_dir, t))
+
+os.environ["LXR_REPO_DIR"] = git_dir
+os.environ["LXR_DATA_DIR"] = data_dir
 
 print "Creating database..."
 run("cd /usr/local/elixir; ./update.py")
