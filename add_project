@@ -3,6 +3,7 @@
 import argparse
 import subprocess
 import os
+from datetime import datetime as dt
 
 
 def run(cmd):
@@ -13,7 +14,6 @@ def run(cmd):
 
     stdout = proc.communicate()[0]
 
-    print stdout
     return stdout
 
 
@@ -21,7 +21,7 @@ p = argparse.ArgumentParser()
 p.add_argument("-n", "--name", required=True)
 p.add_argument("-r", "--remote", required=True)
 p.add_argument("-t", "--tags")
-p.add_argument("-l", "--create_latest_tag")
+p.add_argument("-l", "--create_latest_tag", action="store_true")
 
 args = p.parse_args()
 
@@ -32,12 +32,12 @@ run("mkdir -p %s" % data_dir)
 run("git clone %s %s" % (args.remote, git_dir))
 
 if args.create_latest_tag:
-    run("cd %s; git tag -a %s -m \"Current latest\"" % (git_dir, dt.now().strftime('%Y%m%d')))
+    run("cd %s; git tag -a v%s -m \"Current latest\"" % (git_dir, dt.now().strftime('%Y%m%d')))
 
 if len(run("cd %s; git tag" % git_dir)) == 0:
     print "It seems no tags in this project. Creating latest tag."
     if not args.create_latest_tag:
-        run("cd %s; git tag -a %s -m \"Current latest\"" % (git_dir, dt.now().strftime('%Y%m%d')))
+        run("cd %s; git tag -a v%s -m \"Current latest\"" % (git_dir, dt.now().strftime('%Y%m%d')))
 else:
     if args.tags:
         include_tags = args.tags.split(",")

@@ -27,6 +27,10 @@ RUN python3 setup.py --berkeley-db=/db-4.8.30 install
 
 WORKDIR /usr/local
 
+# Set git user name
+RUN git config --global user.email "elixir@foo.com"
+RUN git config --global user.name "Elixir"
+
 # Install elixir
 RUN git clone https://github.com/YutaroHayakawa/elixir.git
 WORKDIR /usr/local/elixir
